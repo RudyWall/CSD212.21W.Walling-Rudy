@@ -38,9 +38,56 @@ function get_main_menu_selection() {
 function print_instructions() {
     console.log("You select a code length.  The computer will pick a random numeric code of that length.  You then try to guess the code.  On every guess, the computer will tell you how many numbers in your guess are both the correct number and in the correct position (★) and how many are the correct number but not in the correct position (☆).  Using this information, you should eventually be able to deduce the correct code!")
 }
-function count_matches(code, matches) {
-    return { num_matches: 0, num_semi_matches: 0 }
-}
+function count_matches(code, guess){
+    /*Returns a tuple (M,S) where M (matches) is the number of symbols in the player's guess
+       that are both correct and in the correct position and S (semi-matches) is the number of
+       symbols in the player's guess that are correct, but NOT in the correct position.
+       It is assumed that code and guess are strings.*/
+    
+    //First, convert the strings into lists, which are mutable (we will take advantage of this fact)
+    let code_numbers = Array.from(code)
+    let guess_numbers = Array.from(guess)
+    
+    let num_matches = 0
+    let num_semi_matches = 0
+    
+    //Find the exact matches first
+    for (const i in code_numbers){
+        //Any given position that has the same symbol in both the code and the guess is an exact match
+        if (code_numbers[i] == guess_numbers[i]){
+            //Mark matches in the lists of numbers so we don't double-match any of them
+            code_numbers[i] = "-"
+            guess_numbers[i] = "-"
+            num_matches += 1
+        }}
+    //Now determine if there are any semi-matches, ignoring any symbols for which we have already
+    //identified an exact match
+    for (const g in guess_numbers){
+        
+        //Skip any guess numbers we've already matched
+        if (guess_numbers[g] == "-"){
+            continue;
+        }
+        //We need to compare ALL the symbols in the code with each symbol in the guess
+        //because a a semi-match means the guess symbol is somewhere in the code but not
+        //in the same position as it is in the guess
+        for (const i in Array(code_numbers).keys()){
+            c = code_numbers[i]
+            
+            //Skip any code numbers we've already matched
+            
+            if (c == "-"){
+                continue;
+            }
+            if (guess_numbers[g] === c){
+                //Once a code symbol has been matched, mark it so it doesn't get double-matched
+                code_numbers[i] = "-"   
+                num_semi_matches += 1
+                break;
+            }}
+    }
+    return {num_matches, num_semi_matches}
+        }
 function play_round() {
     //Play one round of CODEBREAKER, and then update the game history file.
 
