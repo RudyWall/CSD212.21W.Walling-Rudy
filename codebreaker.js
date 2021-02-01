@@ -1,43 +1,9 @@
-//I had more problems then expected and couldn't quite finish.
-
+"use strict"
 import { readFileSync } from 'fs';
 import * as os from 'os';
 import initPrompt from 'prompt-sync';
 const prompt = initPrompt();
 
-function init() {
-    console.log("CODE⚡BREAKER")
-    get_main_menu_selection()
-}
-function get_main_menu_selection() {
-    //Recursively prompts the user to select one of the main menu options
-
-    console.log("What do you want to do?")
-    console.log("(i) Show instructions")
-    console.log("(p) Play a game")
-    console.log("(q) Quit")
-
-    const response = prompt("")
-
-    if (response == "i") {
-        print_instructions();
-    }
-    else if (response == "p") {
-        play_round();
-    }
-    else if (response == "q") {
-        console.log("Ok bye!")
-        return
-    }
-    else {
-        console.log("I don't understand...")
-    }
-    get_main_menu_selection();
-
-}
-function print_instructions() {
-    console.log("You select a code length.  The computer will pick a random numeric code of that length.  You then try to guess the code.  On every guess, the computer will tell you how many numbers in your guess are both the correct number and in the correct position (★) and how many are the correct number but not in the correct position (☆).  Using this information, you should eventually be able to deduce the correct code!")
-}
 function count_matches(code, guess){
     /*Returns a tuple (M,S) where M (matches) is the number of symbols in the player's guess
        that are both correct and in the correct position and S (semi-matches) is the number of
@@ -47,9 +13,7 @@ function count_matches(code, guess){
     //First, convert the strings into lists, which are mutable (we will take advantage of this fact)
     let code_numbers = Array.from(code)
     let guess_numbers = Array.from(guess)
-    
-    let num_matches = 0
-    let num_semi_matches = 0
+    let mtches = {num_matches:0, num_semi_matches:0}
     
     //Find the exact matches first
     for (const i in code_numbers){
@@ -58,76 +22,74 @@ function count_matches(code, guess){
             //Mark matches in the lists of numbers so we don't double-match any of them
             code_numbers[i] = "-"
             guess_numbers[i] = "-"
-            num_matches += 1
+            mtches.num_matches += 1
         }}
+        console.log(mtches.num_matches)
     //Now determine if there are any semi-matches, ignoring any symbols for which we have already
     //identified an exact match
     for (const g in guess_numbers){
-        
         //Skip any guess numbers we've already matched
         if (guess_numbers[g] == "-"){
-            continue;
+            continue
         }
         //We need to compare ALL the symbols in the code with each symbol in the guess
         //because a a semi-match means the guess symbol is somewhere in the code but not
         //in the same position as it is in the guess
-        for (const i in Array(code_numbers).keys()){
-            c = code_numbers[i]
-            
+        for (const i of Array(code_numbers).keys()){
+            let c = code_numbers[i]
             //Skip any code numbers we've already matched
-            
             if (c == "-"){
-                continue;
+                continue
             }
             if (guess_numbers[g] === c){
                 //Once a code symbol has been matched, mark it so it doesn't get double-matched
                 code_numbers[i] = "-"   
-                num_semi_matches += 1
-                break;
-            }}
-    }
-    return {num_matches, num_semi_matches}
+                mtches.num_semi_matches += 1
+                break 
+            }}}
+            console.log(mtches.num_semi_matches)
+        console.log(mtches)
+    return mtches
         }
-function play_round() {
-    //Play one round of CODEBREAKER, and then update the game history file.
-
-    //First, get the player's desired code length
-    let code_length = get_code_length()
-
-    //Print a bit of info about the player's history at this code length
-    let history = load_history()
-    if (history.has(code_length)) {
-        let { num_games, best, average } = history.get(code_length)
-        console.log(`The number of times you have tried codes of length ${code_length} is ${num_games}.  Your average and best number of guesses are ${average} and ${best}, respectively.`)
-    }
-    else {
-        console.log(`This is your first time trying a code of length ${code_length}`)
-    }
-    //Generate a new random code
-    let code = make_code(code_length)
-
-    //Uncomment this print statement if you want to see the code for debugging purposes
-    //print(code)
-
-    //Repeatedly prompt the player for guesses and give them the appropriate feedback after each guess
-    let num_guesses = 0
-    while (true) {
-        num_guesses += 1
-
-        let guess = get_guess(code_length)
-
-        if (guess == code) {
-            console.log("You cracked the code!  Number of guesses: {num_guesses}")
-            update_history(history, code_length, num_guesses)
-            return
+        function play_round() {
+            //Play one round of CODEBREAKER, and then update the game history file.
+        
+            //First, get the player's desired code length
+            let code_length = get_code_length()
+        
+            //Print a bit of info about the player's history at this code length
+            let history = load_history()
+            if (history.has(code_length)) {
+                let { num_games, best, average } = history.get(code_length)
+                console.log(`The number of times you have tried codes of length ${code_length} is ${num_games}.  Your average and best number of guesses are ${average} and ${best}, respectively.`)
+            }
+            else {
+                console.log(`This is your first time trying a code of length ${code_length}`)
+            }
+            //Generate a new random code
+            let code = make_code(code_length)
+        
+            //Uncomment this print statement if you want to see the code for debugging purposes
+            //print(code)
+        
+            //Repeatedly prompt the player for guesses and give them the appropriate feedback after each guess
+            let num_guesses = 0
+            while (true) {
+                num_guesses += 1
+        
+                let guess = get_guess(code_length)
+        
+                if (guess == code) {
+                    console.log(`You cracked the code!  Number of guesses: ${num_guesses}`)
+                    update_history(history, code_length, num_guesses)
+                    return
+                }
+                else {
+                    let cnt_mtches = (count_matches(code, guess))
+                    console.log(`${"★".repeat(cnt_mtches.num_matches)} ${"☆".repeat(cnt_mtches.num_semi_matches)} ${"-".repeat(code_length - cnt_mtches.num_matches - cnt_mtches.num_semi_matches)}`)
+                }
+            }
         }
-        else {
-            var num_matches, num_semi_matches = count_matches(code, guess)
-
-            console.log(`★*${num_matches} ☆*${num_semi_matches} -*${code_length - num_matches - num_semi_matches}`)
-        }
-    }
-}
 function get_code_length() {
     //Recursively prompt the user for a numeric code length
 
@@ -135,7 +97,7 @@ function get_code_length() {
 
     if (!(is_string_numeric(response))) {
         console.log("You must enter a number")
-        return get_code_length()
+      return get_code_length()
     }
     let n = Number(response)
 
@@ -161,13 +123,6 @@ function is_numeric(c) {
     return "0" <= c && c <= "9"
 }
 function load_history() {
-    return new Map();
-}
-
-//I left the following load_history function as a comment but the one above for testing more.
-
-
-//function load_history() {
 /*Reads the history file into a dictionary and returns the dictionary.
    The file is assumed to contain a set of lines formatted as L:N:B:A
    where L, N, B, A are the code length, number of games at that code length,
@@ -177,7 +132,7 @@ function load_history() {
    The resultant dictionary has the different values for L as its keys, and
    the value for each key is an (N,B,A) tuple.*/
 
-/*history_path = get_history_path()
+history_path = get_history_path()
 
 history = {}
 if (existsSync(history_path)) {
@@ -205,25 +160,25 @@ else {
     }
 }
 return history
-}*/
+}
 function make_code(length) {
     /*Generate a random code string of the given length.
        Codes consist of the digits 0-9 in any position.
        (010, 007, and 000 are all possible codes.)
     */
 
-    var code = "";
-    for (_ in Array(length))
-        code = Math.floor(Math.random() * 10);
-
-    console.log(code)
+    let code = "";
+    for (let _ = 0;_ < length;_+=1){
+        code += Math.floor(Math.random() * 10);}
+    
+    return code
 }
 function get_guess(code_length) {
     //Recursively prompt the player for a guess
 
     let guess = prompt("Guess the code: ")
 
-    if ((guess).length != code_length) {
+    if (guess.length != code_length) {
         console.log(`You must enter ${code_length} numbers`)
         return get_guess(code_length)
     }
@@ -233,6 +188,7 @@ function get_guess(code_length) {
     }
     return guess
 }
+
 function update_history(history, code_length, num_guesses) {
     /*Updates the given history dict such that the best and average scores for
        the given code_length entry incorporate the given num_guesses*/
@@ -270,27 +226,43 @@ function update_history(history, code_length, num_guesses) {
     }
     write_history(history)
 }
-function write_history(history) {
-    /*Writes the given history out to the history file in the format described in the
-       load_history function*/
-    let history_path = get_history_path()
-    if (existsSync(history_path)) {
-        try {
-            (readFileSync((history_path, "w").toString() < string > f));
-            for ((code_length, data) of (item(history))) {
-                //See the load_history docstring for as description of the line format here
-                f.write(f, "{code_length}:{data[0]}:{data[1]}:{data[2]}" + os.linesep)
-            }
 
-        }
-        finally {
-            console.log("Uh oh, the history file couldn't be updated")
-        }
-    }
-}
 function get_history_path() {
     /*Returns the path to the history file used by *he game.
        The path is to a file named 'CODEBREAKER.history' in the users' home directory*/
     return path.join(os.path.expanduser("~"), "CODEBREAKER.history")
+}
+function get_main_menu_selection() {
+    //Recursively prompts the user to select one of the main menu options
+
+    console.log("What do you want to do?")
+    console.log("(i) Show instructions")
+    console.log("(p) Play a game")
+    console.log("(q) Quit")
+
+    const response = prompt("")
+
+    if (response == "i") {
+        print_instructions();
+    }
+    else if (response == "p") {
+        play_round();
+    }
+    else if (response == "q") {
+        console.log("Ok bye!")
+        return
+    }
+    else {
+        console.log("I don't understand...")
+    }
+    get_main_menu_selection();
+
+}
+function print_instructions() {
+    console.log("You select a code length.  The computer will pick a random numeric code of that length.  You then try to guess the code.  On every guess, the computer will tell you how many numbers in your guess are both the correct number and in the correct position (★) and how many are the correct number but not in the correct position (☆).  Using this information, you should eventually be able to deduce the correct code!")
+}
+function init() {
+    console.log("CODE⚡BREAKER")
+    get_main_menu_selection()
 }
 init()
