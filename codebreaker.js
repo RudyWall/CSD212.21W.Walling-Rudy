@@ -1,6 +1,7 @@
-"use strict"
-import { readFileSync } from 'fs';
+"use strict";
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import * as os from 'os';
+import * as path from 'path';
 import initPrompt from 'prompt-sync';
 const prompt = initPrompt();
 
@@ -25,13 +26,13 @@ function count_matches(code, guess) {
             mtches.num_matches += 1
         }
     }
-    console.log(mtches.num_matches)
+
     //Now determine if there are any semi-matches, ignoring any symbols for which we have already
     //identified an exact match
     for (const g in guess_numbers) {
         //Skip any guess numbers we've already matched
         if (guess_numbers[g] == "-") {
-            continue
+            continue;
         }
         //We need to compare ALL the symbols in the code with each symbol in the guess
         //because a a semi-match means the guess symbol is somewhere in the code but not
@@ -50,8 +51,7 @@ function count_matches(code, guess) {
             }
         }
     }
-    console.log(mtches.num_semi_matches)
-    console.log(mtches)
+
     return mtches
 }
 function play_round() {
@@ -61,7 +61,8 @@ function play_round() {
     let code_length = get_code_length()
 
     //Print a bit of info about the player's history at this code length
-    let history = load_history()
+    let history = load_history();
+
     if (history.has(code_length)) {
         let { num_games, best, average } = history.get(code_length)
         console.log(`The number of times you have tried codes of length ${code_length} is ${num_games}.  Your average and best number of guesses are ${average} and ${best}, respectively.`)
@@ -71,6 +72,7 @@ function play_round() {
     }
     //Generate a new random code
     let code = make_code(code_length)
+    console.log(code);
 
     //Uncomment this print statement if you want to see the code for debugging purposes
     //print(code)
@@ -135,28 +137,31 @@ function load_history() {
        The resultant dictionary has the different values for L as its keys, and
        the value for each key is an (N,B,A) tuple.*/
 
-    history_path = get_history_path()
+    const history_path = get_history_path()
 
-    history = {}
+    let history = new Map();
     if (existsSync(history_path)) {
         try {
-            (readFileSync((history_path, "w").toString() < string > f));
-            for (line of f.readlines()) {
-                if (line.strip() != "") { //Ignore empty lines
-                    (code_length, num_games, best, average) == line.split(":")
-                    history[int(code_length)] = (int(num_games), int(best), float(average))
+            const lines = readFileSync(history_path).toString().split(os.EOL);
+            for (const line of lines) {
+                if (line.trim() != "") { //Ignore empty lines
+                    const [code_length, num_games, best, average] = line.split(":");
+                    history.set(parseInt(code_length), { 
+                        num_games: parseInt(num_games), 
+                        best: parseInt(best), 
+                        average: parseFloat(average)
+                    });
                 }
             }
         }
-        finally {
+        catch {
             console.log("Uh oh, your history file could not be read")
         }
     }
     else {
         try {
             //Make an empty history file if there's not already one present
-            f = open(history_path, "w")
-            f.close()
+            writeFileSync(history_path, "");
         }
         finally {
             console.log("Uh oh, I couldn't create a history file for you")
@@ -234,8 +239,29 @@ function update_history(history, code_length, num_guesses) {
 function get_history_path() {
     /*Returns the path to the history file used by *he game.
        The path is to a file named 'CODEBREAKER.history' in the users' home directory*/
-    return path.join(os.path.expanduser("~"), "CODEBREAKER.history")
+    return path.join(os.homedir(), "CODEBREAKER.history");
 }
+
+function write_history(history) {
+ 
+    const historyPath = get_history_path();
+    if ( existsSync(historyPath) ) {
+        try {
+            let contents = "";
+            for ( let items of history ) {
+                const code_length = items[0];
+                const {num_games, best, average} = items[1];
+                // See the loadHistory docstring for a description of the line format here
+                contents += `${code_length}:${num_games}:${best}:${average}` + os.EOL;
+            }
+            writeFileSync(historyPath,contents);
+        } catch(err) {
+            console.log("Uh oh, the history file couldn't be updated");
+            console.log(err);
+        }
+    }
+}
+
 function get_main_menu_selection() {
     //Recursively prompts the user to select one of the main menu options
 
