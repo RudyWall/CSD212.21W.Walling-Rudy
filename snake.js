@@ -112,8 +112,8 @@ const board = {
      */
     getRandomPosition: function () {
         /* TODO : return a random position inside the game board */
-        let h = 10 //Math.floor(Math.random()*this.gridWidth);
-        let v = 5  //Math.floor(Math.random()*this.gridHeight);
+        let h = Math.floor(Math.random()*this.gridWidth);
+        let v = Math.floor(Math.random()*this.gridHeight);
         return { x: h, y: v };
     },
 
