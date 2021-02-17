@@ -102,8 +102,8 @@ const board = {
      */
     clear: function () {
         /* TODO : remove all elements from the board's DOM element, 'el' */
-        while (board.el.firstChild) {
-            board.el.removeChild(board.el.firstChild)
+        while (this.el.firstChild) {
+            this.el.removeChild(this.el.firstChild)
         }
     },
 
@@ -133,7 +133,7 @@ const board = {
      */
     contains: function (point) {
         /* TODO : return true only if the given point is inside the board's grid width and height */
-        if (point.x < this.gridWidth && point.y < this.gridHeight) {
+        if (point.x >= 0 && point.y >= 0 && point.x < this.gridWidth && point.y < this.gridHeight) {
             return true
         }
         else {
@@ -309,12 +309,10 @@ function createSnake(gridPosition) {
             /* TODO : return true if any segment of the snake is on the given grid position */
             for (let p of this.segments) {
                 if (position.x == p.x && position.y == p.y) {
-                    return true
-                }
-                else {
-                    return false
+                    return true;
                 }
             }
+            return false;
         },
 
         /**
@@ -351,7 +349,7 @@ function createFood(gridPosition) {
         omnom.style.backgroundColor = "#FF0000";
         omnom.style.width = px(1, true);
         omnom.style.height = px(1, true);
-        return omnom;
+        return omnom;  // I like this binding name :)
     }
 
     // Return a JS object with the necessary properties and methods
@@ -399,7 +397,7 @@ function createFood(gridPosition) {
  */
 function show(el) {
     /* TODO : add the class 'show' to the given DOM element, el */
-    document.getElementById(el).classList.add("show")
+    el.classList.add("show");
 }
 
 /**
@@ -408,7 +406,7 @@ function show(el) {
  */
 function hide(el) {
     /* TODO : remove the class 'show' from the given DOM element, el */
-    el.classList.remove("show")
+    el.classList.remove("show");
 }
 
 /**
@@ -416,7 +414,7 @@ function hide(el) {
  */
 function updateScoreElement(score) {
     /* TODO : set the content of the <span> with id 'score' to the given score value */
-    document.getElementById('score').textContent += 1
+    document.getElementById('score').textContent = score;
 }
 
 // An object that keeps track of the overall game state
@@ -449,7 +447,7 @@ const game = {
      */
     start: function () {
         this.reset();
-        hide(document.getElementById("menu"))
+        hide(document.getElementById("menu"));
         /* TODO : use the hide() function above to hide the main menu div */
     },
 
@@ -461,7 +459,7 @@ const game = {
         if (this.isOver()) {
             /* TODO : use the show() function above to show the 'game-over' div */
             this.snake.kill();
-            show("game-over")
+            show(document.getElementById("game-over"));
         } else {
             this.snake.slither();
 
@@ -488,7 +486,7 @@ const game = {
      * Resets all necessary objects to a state ready for a new game
      */
     reset: function () {
-        hide(document.getElementById('game-over'))
+        hide(document.getElementById('game-over'));
         /* TODO : use the hide() function above to hide the 'game-over' element */
 
         this.board.clear();
