@@ -631,6 +631,7 @@ document.addEventListener("click", event => {
 window.addEventListener("beforeunload", event => {
     if (!(document.getElementById("menu").classList.contains("show")) ||
         !(document.getElementById("game-over").classList.contains("show"))) {
+        event.preventDefault();
         event.returnValue = "";
     }
 })
