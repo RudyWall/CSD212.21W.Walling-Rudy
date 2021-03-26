@@ -627,11 +627,16 @@ const settings = {
 
     snakeType: function (getValue) {
         // TODO: return the Type selected by the user
+        const el = document.getElementById("snake-type");
         if (getValue) {
-            return document.getElementById("snake-type").value;
+            return el.value;
         }
         else {
-            return document.getElementById("snake-type").options[document.getElementById("snake-type").selectedIndex].text
+            if ( el.value ) {
+                return el.options[el.selectedIndex].text
+            } else {
+                return "";
+            }
         }
     },
 
@@ -658,28 +663,28 @@ function validateName() {
         const startLetter = type[0];
 
         // TODO: Change the regular expression pattern so that it matches the type's start letter at the START of the name
-        let pattern = `TODO|.*`;
+        let pattern = `^${startLetter}`;
         let re = new RegExp(pattern);
         if (!re.test(name)) {
             validationMessage += `${type} names must start with '${startLetter}'. `;
         }
 
         // TODO: Change the regular expression pattern so that it matches spaces followed by anything other than '-' or the first letter of a hiss corresponding to the type
-        pattern = `TODO`;
+        pattern = ` ([^-${startLetter}]|$)`;
         re = new RegExp(pattern);
         if (re.test(name)) {
             validationMessage += `Spaces in ${type} names must be followed by either '-' or '${startLetter}'. `;
         }
 
         // TODO: Change the regular expression pattern so that it matches INVALID hisses corresponding to the type
-        pattern = `TODO`;
+        pattern = `(^| )(${startLetter}( |$)|${startLetter}[Ss]( |$)|${startLetter}[Ss]*[^Ss ])`;
         re = new RegExp(pattern);
         if (re.test(name)) {
             validationMessage += `${type} hisses must start with a '${startLetter}' followed by at least two upper or lower case esses. `;
         }
 
         // TODO: Change the regular expression pattern so that it matches INVALID tongue flicks
-        pattern = `TODO`;
+        pattern = `-$|-[^-<]|<[^ ]`;
         re = new RegExp(pattern);
         if (re.test(name)) {
             validationMessage += `Tongue flicks must start with at least one hyphen and end with one '<'. `
@@ -688,7 +693,7 @@ function validateName() {
     }
 
     // TODO: set the custom validity message on the Name field
-    validationMessage("name is invalid")
+    document.getElementById('snake-name').setCustomValidity(validationMessage);
 }
 
 function init() {
@@ -758,12 +763,21 @@ function init() {
     document.getElementById("snake-name").oninput = (e) => {
         let validcharacters = "HKSsT-< ";
         if (!(validcharacters.includes(e.data))) {
-            document.getElementById("snake-name").value = document.getElementById("snake-name").value.slice(0, document.getElementById("snake-name").value.length - 1)
+            const name = settings.snakeName();
+            
+            let strippedName = "";
+            for ( let c of name ) {
+                if ( "HKSsT -<".includes(c) ) {
+                    strippedName += c;
+                }
+            }
+
+            document.getElementById('snake-name').value = strippedName;
         }
     }
     // TODO: Validate teh Name every time the Type field changes
-    document.getElementById("name").addEventListener("input", validateName())
-    document.getElementById("type").addEventListener("change", validateName())
+    document.getElementById("snake-name").addEventListener("input", validateName);
+    document.getElementById("snake-type").addEventListener("change", validateName);
 }
 
 init();
