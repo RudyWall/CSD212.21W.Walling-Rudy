@@ -1,0 +1,40 @@
+<script>
+        
+    function showGlassesXHR(){
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var obj = JSON.parse(this.responseText);
+            for(i=0;i<obj.drinks.length;i++){
+                console.log(obj.drinks[i].strGlass)}
+            }
+};
+request.open("GET", "https://www.thecocktaildb.com/api/json/v1/1/list.php?g=list", true);
+request.send();
+    }
+    function showGlassesPromises(){
+            fetch("https://www.thecocktaildb.com/api/json/v1/1/list.php?g=list")
+            .then(response => response.json())
+            .then(data =>{for (i=0;i<data.drinks.length;i++){
+                console.log(data.drinks[i].strGlass)}})
+    }
+    async function showGlassesAsync(){
+try {
+    let response = await fetch("https://www.thecocktaildb.com/api/json/v1/1/list.php?g=list");
+
+    if ( ! response.ok ) {
+        throw new Error("Network response was not ok");
+    }
+
+    var obj = JSON.parse(this.responseText)
+    for(i=0;i<obj.drinks.length;i++){
+        console.log(obj.drinks[i].strGlass)
+    }
+        
+} catch(err) {
+    console.log(err);
+}
+}
+
+    
+</script>
